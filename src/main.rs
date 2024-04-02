@@ -10,7 +10,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 struct Car {
-    num: u8,
+    num: u16,
     distance: u16,
 }
 
@@ -23,27 +23,19 @@ impl Car {
 }
 
 fn start_race() {
-    print!("Starting Race");
-    io::stdout().flush().unwrap();
-    sleep(Duration::from_millis(500));
-    print!(" 3");
-    io::stdout().flush().unwrap();
-    sleep(Duration::from_millis(500));
-    print!(" 2");
-    io::stdout().flush().unwrap();
-    sleep(Duration::from_millis(500));
-    print!(" 1");
-    io::stdout().flush().unwrap();
-    sleep(Duration::from_millis(500));
-    print!(" Go...");
-    io::stdout().flush().unwrap();
+    let strings = vec!["Starting Race", " 3", " 2", " 1", " Go..."];
+    for string in strings {
+        print!("{string}");
+        io::stdout().flush().unwrap();
+        sleep(Duration::from_millis(500));
+    }
 }
 
-fn create_cars(total_cars: i32) -> Vec<Car> {
+fn create_cars(total_cars: u16) -> Vec<Car> {
     let mut cars: Vec<Car> = vec![];
     for n in 1..=total_cars {
         let new_car = Car {
-            num: n as u8,
+            num: n,
             distance: 0,
         };
         cars.push(new_car);
@@ -57,7 +49,7 @@ fn replace_line(line_num: u16, new_contents: String, start_line: u16) {
     // Move cursor to line 5 (0-based index)
     execute!(handle, MoveTo(0, start_line + line_num)).unwrap();
     // Clear line and print new content
-    write!(handle, "{}", new_contents).unwrap();
+    write!(handle, "{new_contents}").unwrap();
     handle.flush().unwrap();
 }
 
@@ -88,7 +80,7 @@ fn print_car_position(car: &Car, total_distance: u16, car_won: bool, start_line:
     if !car_won {
         car_line.push('|'); // End the line
     }
-    replace_line(car.num as u16, car_line, start_line)
+    replace_line(car.num, car_line, start_line);
 }
 
 fn get_current_line_number() -> Result<u16, crossterm::ErrorKind> {
@@ -100,18 +92,17 @@ fn main() {
     let start_line = get_current_line_number().unwrap();
     start_race();
     let finish_distance: u16 = 120;
-    let total_cars = 15;
+    let total_cars: u16 = 10;
     let mut cars: Vec<Car> = create_cars(total_cars);
     let mut car_won = false;
     loop {
-        for car in cars.iter_mut() {
+        for car in &mut cars {
             car.drive();
-            // println!("Car {} is at {}", car.num, car.distance);
             car_won = car.distance >= finish_distance;
             print_car_position(car, finish_distance, car_won, start_line);
             if car_won {
                 let win_str = format!("\nCar {} Won!", car.num);
-                replace_line(total_cars as u16, win_str, start_line);
+                replace_line(total_cars, win_str, start_line);
                 break;
             }
             // TODO allow ties
