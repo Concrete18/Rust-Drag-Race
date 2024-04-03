@@ -1,11 +1,9 @@
-use crossterm::{
-    cursor::{position, MoveTo},
-    execute,
-};
 use rand::Rng;
 use std::io::{self, Write};
 use std::thread::sleep;
 use std::time::Duration;
+
+mod utils;
 
 struct Car {
     num: u16,
@@ -47,7 +45,7 @@ impl Car {
         if !car_won {
             car_line.push('|'); // End the line
         }
-        replace_line(self.num, car_line, start_line);
+        utils::replace_line(self.num, car_line, start_line);
     }
 }
 
@@ -65,8 +63,8 @@ fn start_countdown(ms_delay: u64) {
 
 /// Starts the race with the given cars
 fn start_race(total_cars: u16) {
-    let start_line = get_current_line_number().unwrap();
-    let finish_distance: u16 = 120;
+    let start_line = utils::get_current_line_number().unwrap();
+    let finish_distance: u16 = 80;
     let mut cars: Vec<Car> = create_cars(total_cars);
     let mut car_won = false;
     println!();
@@ -77,7 +75,7 @@ fn start_race(total_cars: u16) {
             car.print_position(finish_distance, car_won, start_line);
             if car_won {
                 let win_str = format!("\nCar {} Won the race!", car.num);
-                replace_line(total_cars, win_str, start_line);
+                utils::replace_line(total_cars, win_str, start_line);
                 println!();
                 break;
             }
@@ -100,37 +98,11 @@ fn create_cars(total_cars: u16) -> Vec<Car> {
     cars
 }
 
-/// Replaces the line at `line_num` with `new_contents` relative to `start_line`
-fn replace_line(line_num: u16, new_contents: String, start_line: u16) {
-    let stdout = io::stdout();
-    let mut handle = stdout.lock();
-    // Move cursor to line 5 (0-based index)
-    execute!(handle, MoveTo(0, start_line + line_num)).unwrap();
-    // Clear line and print new content
-    write!(handle, "{new_contents}").unwrap();
-    handle.flush().unwrap();
-}
-
-/// Gets the current line number in the terminal
-fn get_current_line_number() -> Result<u16, crossterm::ErrorKind> {
-    let (_, line) = position()?;
-    Ok(line)
-}
-
-/// Asks for input after printing a msg
-fn input() -> String {
-    let mut response: String = String::new();
-    io::stdin()
-        .read_line(&mut response)
-        .expect("Failed to read line");
-    return response.trim().to_string();
-}
-
 /// Waits for a number input that wll  returned as a u16
 ///
 /// Defaults to 5 if input errors
 fn ask_for_u16() -> u16 {
-    let response = input();
+    let response = utils::input();
     match response.trim().parse() {
         Ok(n) => n,
         Err(_) => {
@@ -141,9 +113,9 @@ fn ask_for_u16() -> u16 {
 }
 
 /// Waits for enter to be pressed to continue
-fn ask_to_restart() {
+fn ask_to_restart_or_exit() {
     println!("\nType y to rerun or just press Enter to exit");
-    let response = input();
+    let response = utils::input();
     if response == "y" {
         println!();
         start();
