@@ -141,12 +141,17 @@ fn ask_for_u16() -> u16 {
 }
 
 /// Waits for enter to be pressed to continue
-fn enter_to_continue() {
-    println!("\nPress Enter to exit");
-    input();
+fn ask_to_restart() {
+    println!("\nType y to rerun or just press Enter to exit");
+    let response = input();
+    if response == "y" {
+        println!();
+        start();
+    }
 }
 
-fn main() {
+/// starts everything and can be rerun to race again
+fn start() {
     println!("Welcome to The Rust Car Race Simulator");
 
     println!("\nHow many cars should race?");
@@ -154,5 +159,9 @@ fn main() {
 
     start_countdown(500);
     start_race(total_cars);
-    enter_to_continue();
+    ask_to_restart_or_exit();
+}
+
+fn main() {
+    start()
 }
