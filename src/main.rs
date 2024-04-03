@@ -69,26 +69,36 @@ fn start_race(total_cars: u16) {
     let termsize::Size { rows: _, cols } = termsize::get().unwrap();
     let finish_distance: u16 = cols - 20;
     let mut cars: Vec<Car> = create_cars(total_cars);
-    let mut car_won = false;
+    let mut car_won: bool;
+    let mut finished_race: Vec<String> = Vec::new();
     println!();
     loop {
         for car in &mut cars {
             car.drive();
             car_won = car.distance >= finish_distance;
             let car_line = car.get_position_display(finish_distance, car_won);
-            utils::replace_line(car.num, car_line, start_line);
             if car_won {
-                let win_str = format!("\n\nCar {} Won the race!", car.num);
+                finished_race.push(car.num.to_string());
+            }
+            utils::replace_line(car.num, car_line, start_line);
+        }
+        match finished_race.len() {
+            1 => {
+                let win_str = format!("\n\nCar {} Won the race!", finished_race[0]);
                 utils::replace_line(total_cars, win_str, start_line);
-                println!();
                 break;
             }
-            // TODO allow ties
+            2.. => {
+                let win_str = "\n\nThere was a tie!".to_string();
+                utils::replace_line(total_cars, win_str, start_line);
+                let winners = finished_race.join(", ");
+                println!("\nThe winners are cars {winners}.");
+                break;
+            }
+            _ => {
+                sleep(Duration::from_millis(50));
+            }
         }
-        if car_won {
-            break;
-        }
-        sleep(Duration::from_millis(50));
     }
 }
 
@@ -139,7 +149,7 @@ fn start() {
 }
 
 fn main() {
-    start()
+    start();
 }
 
 #[cfg(test)]

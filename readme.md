@@ -1,6 +1,6 @@
 # Rust Drag Race
 
-I decided to create a drag race simulator fully within the terminal with Rust. It was meant to learn how to use Rust Structs more and I think I succeeded at that.
+I chose to develop a drag race simulator entirely within the terminal using Rust. The project was aimed at improving my understanding and usage of Rust Structs, and I believe I achieved that goal successfully.
 
 ![Console Preview](https://raw.githubusercontent.com/Concrete18/Rust-Race/main/images/example.png)
 
@@ -11,4 +11,4 @@ I decided to create a drag race simulator fully within the terminal with Rust. I
 
 ## Todo
 
-- Add Tie Detection
+- Limit car total based on terminal size
