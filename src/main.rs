@@ -165,7 +165,7 @@ mod hangman_tests {
     fn print_position_success() {
         let mut car = Car::new(1);
         let output = car.get_position_display(15, false);
-        assert!(output == "   1 |∙،°.˘Ô≈ôﺣ               |");
+        assert!(output == "   1 |∙،°.˘Ô≈ôﺣ               ||");
         car.distance = 16;
         let output = car.get_position_display(15, true);
         println!("{output}");
