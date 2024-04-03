@@ -1,9 +1,11 @@
+use clearscreen::ClearScreen;
 use rand::Rng;
 use std::io::{self, Write};
 use std::thread::sleep;
 use std::time::Duration;
-
 mod utils;
+
+extern crate termsize;
 
 struct Car {
     num: u16,
@@ -24,7 +26,7 @@ impl Car {
     }
 
     /// Prints its current position in the race
-    fn print_position(&mut self, total_distance: u16, car_won: bool, start_line: u16) {
+    fn get_position_display(&mut self, total_distance: u16, car_won: bool) -> String {
         let ascii_car = "∙،°.˘Ô≈ôﺣ";
         let car_distance = self.distance;
         let spaces_before = car_distance;
@@ -43,19 +45,19 @@ impl Car {
             car_line.push(' ');
         }
         if !car_won {
-            car_line.push('|'); // End the line
+            car_line.push_str("||"); // End the line
         }
-        utils::replace_line(self.num, car_line, start_line);
+        car_line
     }
 }
 
 /// Starts the race countdown starting from 3
 fn start_countdown(ms_delay: u64) {
-    println!();
-    for str in ["Starting Race", " 3", " 2", " 1", " Go..."] {
-        print!("{str}");
+    const COUNTDOWN: [&str; 5] = ["\nStarting Race", " 3", " 2", " 1", " Go...\n"];
+    for (i, el) in COUNTDOWN.iter().enumerate() {
+        print!("{el}");
         io::stdout().flush().unwrap();
-        if str != " Go..." {
+        if i != 4 {
             sleep(Duration::from_millis(ms_delay));
         }
     }
@@ -64,7 +66,8 @@ fn start_countdown(ms_delay: u64) {
 /// Starts the race with the given cars
 fn start_race(total_cars: u16) {
     let start_line = utils::get_current_line_number().unwrap();
-    let finish_distance: u16 = 80;
+    let termsize::Size { rows: _, cols } = termsize::get().unwrap();
+    let finish_distance: u16 = cols - 20;
     let mut cars: Vec<Car> = create_cars(total_cars);
     let mut car_won = false;
     println!();
@@ -72,9 +75,10 @@ fn start_race(total_cars: u16) {
         for car in &mut cars {
             car.drive();
             car_won = car.distance >= finish_distance;
-            car.print_position(finish_distance, car_won, start_line);
+            let car_line = car.get_position_display(finish_distance, car_won);
+            utils::replace_line(car.num, car_line, start_line);
             if car_won {
-                let win_str = format!("\nCar {} Won the race!", car.num);
+                let win_str = format!("\n\nCar {} Won the race!", car.num);
                 utils::replace_line(total_cars, win_str, start_line);
                 println!();
                 break;
@@ -117,7 +121,7 @@ fn ask_to_restart_or_exit() {
     println!("\nType y to rerun or just press Enter to exit");
     let response = utils::input();
     if response == "y" {
-        println!();
+        ClearScreen::default().clear().expect("Clear Failed");
         start();
     }
 }
@@ -136,4 +140,41 @@ fn start() {
 
 fn main() {
     start()
+}
+
+#[cfg(test)]
+mod hangman_tests {
+    use super::*;
+
+    #[test]
+    fn car_init() {
+        let car = Car::new(1);
+        assert!(car.num == 1);
+        assert!(car.distance == 0);
+    }
+
+    #[test]
+    fn drive_success() {
+        let mut car = Car::new(1);
+        car.drive();
+        assert!(car.distance > 0);
+        assert!(car.distance < 4);
+    }
+
+    #[test]
+    fn print_position_success() {
+        let mut car = Car::new(1);
+        let output = car.get_position_display(15, false);
+        assert!(output == "   1 |∙،°.˘Ô≈ôﺣ               |");
+        car.distance = 16;
+        let output = car.get_position_display(15, true);
+        println!("{output}");
+        assert!(output == "   1 |                ∙،°.˘Ô≈ôﺣ");
+    }
+
+    #[test]
+    fn load_words_from_file() {
+        let cars: Vec<Car> = create_cars(5);
+        assert!(cars.len() == 5);
+    }
 }
