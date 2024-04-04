@@ -64,10 +64,22 @@ fn start_countdown(ms_delay: u64) {
 }
 
 /// Starts the race with the given cars
-fn start_race(total_cars: u16) {
-    let start_line = utils::get_current_line_number().unwrap();
-    let termsize::Size { rows: _, cols } = termsize::get().unwrap();
+fn start_race() {
+    let termsize::Size { rows, cols } = termsize::get().unwrap();
     let finish_distance: u16 = cols - 20;
+
+    // gets total cars for race
+    println!("\nHow many cars should race?");
+    let mut total_cars: u16 = ask_for_u16();
+    let max_cars: u16 = rows - 10;
+    if total_cars > max_cars {
+        println!("Total cars would exceed terminal height.\nSetting total to {max_cars}");
+        total_cars = max_cars
+    }
+
+    start_countdown(250);
+
+    let start_line = utils::get_current_line_number().unwrap();
     let mut cars: Vec<Car> = create_cars(total_cars);
     let mut car_won: bool;
     let mut finished_race: Vec<String> = Vec::new();
@@ -139,12 +151,7 @@ fn ask_to_restart_or_exit() {
 /// starts everything and can be rerun to race again
 fn start() {
     println!("Welcome to The Rust Car Race Simulator");
-
-    println!("\nHow many cars should race?");
-    let total_cars = ask_for_u16();
-
-    start_countdown(500);
-    start_race(total_cars);
+    start_race();
     ask_to_restart_or_exit();
 }
 
